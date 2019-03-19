@@ -1,55 +1,102 @@
 package i18ndate
 
 import (
-	"encoding/json"
-	"io"
-	"os"
+	"errors"
+	"strconv"
+	"time"
 )
 
+// These constants permit to specify which fields (and their string representation !) the user wants
+const (
+	ShortDay = 1 << iota
+	LongDay
+	DayNumber
+	ShortMonth
+	LongMonth
+	Year
+)
+
+// Constants defining usual representations
+const (
+	BasicDate = LongDay | DayNumber | LongMonth | Year
+)
+
+// An available language
 type Lang string
 
-const pathToTranslations = "./lang/"
+var availableLanguages = [...]Lang{"fr"}
 
-var AvailableLanguages = [...]Lang{"fr"}
-
+// Days and months from a foreign language
 type LangDay string
 type LangMonth string
 
-type LangConvertor struct {
+// Translator is the structure containing the months and days slices for a given language
+type Translator struct {
 	Lang   Lang
 	Days   []LangDay
 	Months []LangMonth
 }
 
-// NewConvertor returns a LangConvertor struct containing everything needed to translate a date to a specific language
-// If the provided lang isn't supported by the library, it loads a translation json file from pathToI18nFile
-// If an error occured, it returns the error and a nil pointer, otherwise, error is nil and LangConvertor is ready to be used to translate
-func NewConvertor(lang, pathToI18nFile string) (error, *LangConvertor) {
-	var err error
-	var foundLanguage bool = false
-	for i := range AvailableLanguages {
-		if Lang(lang) == AvailableLanguages[i] {
-			foundLanguage = true
-			break
-		}
+// NewTranslator returns a translator corresponding to a given language or an error if this language is unavailable
+func NewTranslator(lang string) (*Translator, error) {
+	switch lang {
+	case "fr":
+		return NewFrenchTranslator(), nil
+	default:
+		return nil, errors.New("The language is unavailable :-(")
 	}
+}
 
-	var reader io.Reader
-	if !foundLanguage {
-		reader, err = os.Open(pathToTranslations)
-		if err != nil {
-			return err, nil
-		}
+// Returns the weekday corresponding to weekday number (Sunday is 0 for Golang Time.Weekday type)
+func (tr *Translator) weekday(weekday int) string {
+	var index int
+	if weekday == 0 {
+		index = 6
 	} else {
-		reader, err = os.Open(pathToTranslations + lang)
-		if err != nil {
-			return err, nil
+		index = weekday - 1
+	}
+	return string(tr.Days[index])
+}
+
+// Returns the month corresponding to month number
+func (tr *Translator) month(month int) string {
+	return string(tr.Months[month-1])
+}
+
+// Takes a time.Time in parameter and returns a formatted string according to the provided pattern (for instance BasicDate)
+func (tr *Translator) Translate(time time.Time, pattern int) string {
+	var date string
+	if (pattern&ShortDay) != 0 || (pattern&LongDay) != 0 {
+		day := tr.weekday(int(time.Weekday()))
+		if pattern&ShortDay != 0 {
+			date += day[:3]
+		} else {
+			date += day
 		}
 	}
-	var decoder *json.Decoder = json.NewDecoder(reader)
-	var convertor *LangConvertor
-	if err := decoder.Decode(convertor); err != nil {
-		return err, nil
+	if pattern&DayNumber != 0 {
+		if nb := strconv.Itoa(time.Day()); len(date) > 0 {
+			date += " " + nb
+		} else {
+			date += nb
+		}
 	}
-	return nil, convertor
+	if (pattern&ShortMonth) != 0 || (pattern&LongMonth) != 0 {
+		month := tr.month(int(time.Month()))
+		if len(date) > 0 {
+			date += " "
+		}
+		if pattern&ShortMonth != 0 {
+			date += month[:3]
+		} else {
+			date += month
+		}
+	}
+	if pattern&Year != 0 {
+		if len(date) > 0 {
+			date += " "
+		}
+		date += strconv.Itoa(time.Year())
+	}
+	return date
 }

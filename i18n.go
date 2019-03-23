@@ -26,8 +26,10 @@ type Lang string
 
 var availableLanguages = [...]Lang{"fr"}
 
-// Days and months from a foreign language
+// LangDay is a string representing a day in a foreign language
 type LangDay string
+
+// LangMonth is a string representing a day in a foreign language
 type LangMonth string
 
 // Translator is the structure containing the months and days slices for a given language

@@ -1,7 +1,7 @@
 package i18ndate
 
 // The days in french
-var frenchDays = []LangDay{
+var frenchDays = [...]LangDay{
 	"Lundi",
 	"Mardi",
 	"Mercredi",
@@ -12,7 +12,7 @@ var frenchDays = []LangDay{
 }
 
 // The months in french
-var frenchMonths = []LangMonth{
+var frenchMonths = [...]LangMonth{
 	"Janvier",
 	"Février",
 	"Mars",
@@ -30,7 +30,7 @@ var frenchMonths = []LangMonth{
 func NewFrenchTranslator() *Translator {
 	return &Translator{
 		Lang:   "fr",
-		Days:   frenchDays,
-		Months: frenchMonths,
+		Days:   frenchDays[:],
+		Months: frenchMonths[:],
 	}
 }

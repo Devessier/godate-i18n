@@ -13,15 +13,17 @@ const (
 	DayNumber
 	ShortMonth
 	LongMonth
+	MonthNumber
 	Year
 )
 
 // Constants defining usual representations
 const (
-	BasicDate = LongDay | DayNumber | LongMonth | Year
+	BasicDate     = LongDay | DayNumber | LongMonth | Year
+	NumericalDate = DayNumber | MonthNumber | Year
 )
 
-// An available language
+// Lang reprensents an available language
 type Lang string
 
 var availableLanguages = [...]Lang{"fr"}
@@ -45,7 +47,7 @@ func NewTranslator(lang string) (*Translator, error) {
 	case "fr":
 		return NewFrenchTranslator(), nil
 	default:
-		return nil, errors.New("The language is unavailable :-(")
+		return nil, errors.New("This language is unavailable :-(")
 	}
 }
 
@@ -65,11 +67,20 @@ func (tr *Translator) month(month int) string {
 	return string(tr.Months[month-1])
 }
 
-// Takes a time.Time in parameter and returns a formatted string according to the provided pattern (for instance BasicDate)
-func (tr *Translator) Translate(time time.Time, pattern int) string {
-	var date string
+// Translate takes a time.Time in parameter and returns a formatted string according to the provided pattern (for instance BasicDate)
+func (tr *Translator) Translate(time time.Time, pattern int) (date string) {
+	var weekday = time.Weekday()
+	var day = time.Day()
+	var month = time.Month()
+	var year = time.Year()
+
+	if (pattern & NumericalDate) != 0 {
+		date = padStringNumber(day) + "/" + padStringNumber(int(month)) + "/" + strconv.Itoa(year)
+		return
+	}
+
 	if (pattern&ShortDay) != 0 || (pattern&LongDay) != 0 {
-		day := tr.weekday(int(time.Weekday()))
+		day := tr.weekday(int(weekday))
 		if pattern&ShortDay != 0 {
 			date += day[:3]
 		} else {
@@ -77,14 +88,14 @@ func (tr *Translator) Translate(time time.Time, pattern int) string {
 		}
 	}
 	if pattern&DayNumber != 0 {
-		if nb := strconv.Itoa(time.Day()); len(date) > 0 {
+		if nb := strconv.Itoa(day); len(date) > 0 {
 			date += " " + nb
 		} else {
 			date += nb
 		}
 	}
 	if (pattern&ShortMonth) != 0 || (pattern&LongMonth) != 0 {
-		month := tr.month(int(time.Month()))
+		month := tr.month(int(month))
 		if len(date) > 0 {
 			date += " "
 		}
@@ -98,7 +109,15 @@ func (tr *Translator) Translate(time time.Time, pattern int) string {
 		if len(date) > 0 {
 			date += " "
 		}
-		date += strconv.Itoa(time.Year())
+		date += strconv.Itoa(year)
 	}
-	return date
+	return
+}
+
+func padStringNumber(n int) string {
+	str := strconv.Itoa(n)
+	if len(str) == 1 {
+		return "0" + str
+	}
+	return str
 }

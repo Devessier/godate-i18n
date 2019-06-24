@@ -15,12 +15,19 @@ const (
 	LongMonth
 	MonthNumber
 	Year
+
+	Time // Return also the time
 )
 
 // Constants defining usual representations
 const (
 	BasicDate     = LongDay | DayNumber | LongMonth | Year
 	NumericalDate = DayNumber | MonthNumber | Year
+)
+
+// Options that trigger special behaviors when used in conjunction with others flags
+const (
+	PadNumerics = 1 << iota // When used with `NumericalDate` flag day and month will be padded with `0` if necessary
 )
 
 // Lang reprensents an available language
@@ -75,7 +82,26 @@ func (tr *Translator) Translate(time time.Time, pattern int) (date string) {
 	var year = time.Year()
 
 	if (pattern & NumericalDate) != 0 {
-		date = padStringNumber(day) + "/" + padStringNumber(int(month)) + "/" + strconv.Itoa(year)
+		if (pattern & PadNumerics) != 0 {
+			date = padStringNumber(day) + "/" + padStringNumber(int(month))
+		} else {
+			date = strconv.Itoa(day) + "/" + strconv.Itoa(int(month))
+		}
+		date += "/" + strconv.Itoa(year)
+
+		if (pattern & Time) != 0 {
+			var hour = time.Hour()
+			var minutes = time.Minute()
+
+			date += ", "
+
+			if (pattern & PadNumerics) != 0 {
+				date += padStringNumber(hour) + ":" + padStringNumber(minutes)
+			} else {
+				date += strconv.Itoa(hour) + ":" + strconv.Itoa(minutes)
+			}
+		}
+
 		return
 	}
 

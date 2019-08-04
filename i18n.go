@@ -43,9 +43,10 @@ type LangMonth string
 
 // Translator is the structure containing the months and days slices for a given language
 type Translator struct {
-	Lang   Lang
-	Days   []LangDay
-	Months []LangMonth
+	DateTimeSeparator string
+	Lang              Lang
+	Days              []LangDay
+	Months            []LangMonth
 }
 
 // NewTranslator returns a translator corresponding to a given language or an error if this language is unavailable
@@ -93,7 +94,7 @@ func (tr *Translator) Translate(time time.Time, pattern int) (date string) {
 			var hour = time.Hour()
 			var minutes = time.Minute()
 
-			date += ", "
+			date += tr.DateTimeSeparator
 
 			if (pattern & PadNumerics) != 0 {
 				date += padStringNumber(hour) + ":" + padStringNumber(minutes)

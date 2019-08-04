@@ -28,8 +28,9 @@ var englishMonths = [...]LangMonth{
 // NewEnglishTranslator returns a *Translator with the english days and months
 func NewEnglishTranslator() *Translator {
 	return &Translator{
-		Lang:   "en",
-		Days:   englishDays[:],
-		Months: englishMonths[:],
+		DateTimeSeparator: " at ",
+		Lang:              "en",
+		Days:              englishDays[:],
+		Months:            englishMonths[:],
 	}
 }

@@ -29,8 +29,9 @@ var frenchMonths = [...]LangMonth{
 // NewFrenchTranslator returns a *Translator with the french days and months
 func NewFrenchTranslator() *Translator {
 	return &Translator{
-		Lang:   "fr",
-		Days:   frenchDays[:],
-		Months: frenchMonths[:],
+		DateTimeSeparator: " à ",
+		Lang:              "fr",
+		Days:              frenchDays[:],
+		Months:            frenchMonths[:],
 	}
 }

@@ -113,7 +113,7 @@ func (tr *Translator) Translate(time time.Time, pattern int) (date string) {
 			date += day
 		}
 	}
-	if pattern&DayNumber != 0 {
+	if (pattern & DayNumber) != 0 {
 		if nb := strconv.Itoa(day); len(date) > 0 {
 			date += " " + nb
 		} else {
@@ -125,13 +125,13 @@ func (tr *Translator) Translate(time time.Time, pattern int) (date string) {
 		if len(date) > 0 {
 			date += " "
 		}
-		if pattern&ShortMonth != 0 {
+		if (pattern & ShortMonth) != 0 {
 			date += month[:3]
 		} else {
 			date += month
 		}
 	}
-	if pattern&Year != 0 {
+	if (pattern & Year) != 0 {
 		if len(date) > 0 {
 			date += " "
 		}
